@@ -1,0 +1,127 @@
+<html>
+  <head>
+    <title>Twitter Grabber Thingy</title>
+        <script src="https://cdn.pubnub.com/pubnub.min.js"></script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js'></script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.1.15-beta/nv.d3.min.js'></script>
+         <link rel="stylesheet" type="text/css" href="challenger.css">
+        <link href='https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.1.15-beta/nv.d3.min.css' rel='stylesheet'>
+  </head>
+  <body>
+      
+    <div id="header">Twitter Visualisation</div>
+    <form id="hashtagform">
+      Challenger One:<br />
+         <input type="text" name="hashtag1" id="hashtag1" value="cat">
+      <br />
+      <br />
+      Challenger Two:<br />
+         <input type="text" name="hashtag2" id="hashtag2" value="dog">
+      <br />
+      <br />
+        <input id="Begin" type="button" value="Start" onclick="start();" />
+   </form>
+      
+      <section id="scoreboard">
+      <h3>Scoreboard</h3>
+      <label id="hashonename" ></label><br />
+      <label id="hashonescore" ></label>
+      <br />
+      <label id="hashtwoname" ></label><br />
+      <label id="hashtwoscore" ></label>
+      </section>
+      <div id='chart'> 
+      <svg></svg> 
+      </div>
+  <script charset="utf-8">
+ 
+ function start() {
+   
+   var hash1  = document.getElementById("hashtag1").value;
+   var hash2 =  document.getElementById("hashtag2").value;
+   if(hash1 =='' || hash2 == '') {
+       alert("Put a search term in the input boxes"); 
+   } //else run the main script
+   else{
+       
+       var datas = [{"key": hash1, color:'#990000', "values": [] }, 
+                    {"key": hash2, color:'#2952CC',"values": [] }, ];
+            
+   var counter = 0;
+   var counterSecond = 0;
+   var chart = nv.models.discreteBarChart()
+      .x(function(d) { return d.label })
+      .y(function(d) { return d.value })
+      .staggerLabels(false)
+      .showValues(false)   
+      .showYAxis(false)
+      .transitionDuration(350)
+      nv.addGraph(loadGraph);
+      
+      
+      function loadGraph() { 
+          d3.select('#chart svg') 
+          .datum(datas) 
+          .transition().duration(500) 
+          .call(chart); 
+          nv.utils.windowResize(chart.update); 
+          return chart; 
+      };
+     
+     //update from values in inputs
+     var dictionarycat = [hash1];
+     var dictionarydog = [hash2];
+       
+     if(counter = 10) {
+         alert(hash1+" is the winner!");
+     } else if (counterSecond = 10) {
+         alert(hash2+" is the winner!");
+         
+     }
+     //First things first - get the pubhub data stream for twitter messages. 
+     PUBNUB.init({
+      subscribe_key: 'sub-c-78806dd4-42a6-11e4-aed8-02ee2ddab7fe'
+      }).subscribe({
+       channel : 'pubnub-twitter',
+       disconnect : function() {
+           alert("He's dead jim (disconnected from stream)");
+       },
+       reconnect : function() {
+           alert("I got better (reconnected to stream)");
+       },
+       //message : function(msg){ console.log(msg) },
+       callback: selectData
+      });
+      //Filter for the messages we want using a dictionary, examine responses and see what we        want(data.text it seems. Only want the count         to send over to d3.)
+        function selectData(data) {
+          if(dictionarycat.some(function(v) { return data.text.toLowerCase().indexOf(v) > 0; })) {
+            console.log(data.text);
+            counter++;
+            console.log(counter);
+            point = {};
+            point.label = hash1;
+            point.value = counter;
+            document.getElementById("hashonename").innerHTML = "Hashtag: "+hash1;
+            document.getElementById("hashonescore").innerHTML = "Score: "+counter;
+            datas[0].values.push(point);
+            loadGraph();
+              
+          } else if(dictionarydog.some(function(v) { return data.text.toLowerCase().indexOf(v) > 0;}))           {
+            console.log(data.text);
+            counterSecond++;
+            console.log(counterSecond);
+            point = {};
+            point.label = hash2;
+            document.getElementById("hashtwoname").innerHTML = "Hashtag: "+hash2;
+            document.getElementById("hashtwoscore").innerHTML = "Score: "+counterSecond;
+            point.value = counterSecond;
+            datas[1].values.push(point);
+            loadGraph();  
+              
+          }            
+        }
+   }
+}
+    </script>
+  </body>
+</html>
