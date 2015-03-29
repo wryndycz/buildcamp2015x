@@ -72,12 +72,6 @@
      var dictionarycat = [hash1];
      var dictionarydog = [hash2];
        
-     if(counter = 10) {
-         alert(hash1+" is the winner!");
-     } else if (counterSecond = 10) {
-         alert(hash2+" is the winner!");
-         
-     }
      //First things first - get the pubhub data stream for twitter messages. 
      PUBNUB.init({
       subscribe_key: 'sub-c-78806dd4-42a6-11e4-aed8-02ee2ddab7fe'
@@ -92,7 +86,7 @@
        //message : function(msg){ console.log(msg) },
        callback: selectData
       });
-      //Filter for the messages we want using a dictionary, examine responses and see what we        want(data.text it seems. Only want the count         to send over to d3.)
+      //Filter for the messages we want using a dictionary, examine responses and see what we want(data.text it seems. Only want the count         to send over to d3.)
         function selectData(data) {
           if(dictionarycat.some(function(v) { return data.text.toLowerCase().indexOf(v) > 0; })) {
             console.log(data.text);
